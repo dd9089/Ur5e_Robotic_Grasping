@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur">
+  
+  <!-- Import UR5e macro -->
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  
+  <!-- Import Robotiq adapter and gripper macros -->
+  <xacro:include filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro"/>
+  <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_85_macro.urdf.xacro"/>
+  
+  <!-- Parameters -->
+  <xacro:arg name="use_fake_hardware" default="false"/>
+  <xacro:arg name="fake_sensor_commands" default="false"/>
+  <xacro:arg name="mock_sensor_commands" default="false"/>
+  <xacro:arg name="robot_ip" default="192.168.131.143"/>
+  <xacro:arg name="com_port" default="/tmp/ttyUR"/>
+  <xacro:arg name="include_gripper_ros2_control" default="false"/>
+  <xacro:arg name="use_tool_communication" default="false"/>
+  <xacro:arg name="tool_voltage" default="0"/>
+  <xacro:arg name="tool_parity" default="0"/>
+  <xacro:arg name="tool_baud_rate" default="115200"/>
+  <xacro:arg name="tool_stop_bits" default="1"/>
+  <xacro:arg name="tool_rx_idle_chars" default="1.5"/>
+  <xacro:arg name="tool_tx_idle_chars" default="3.5"/>
+  <xacro:arg name="tool_device_name" default="/tmp/ttyUR"/>
+  <xacro:arg name="tool_tcp_port" default="54321"/>
+  
+  <!-- World link -->
+  <link name="world"/>
+  
+  <!-- Base mounting plate (adapter) at world z=0 -->
+  <link name="base_mounting_plate">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5e_vision_config/meshes/ur5eAdapter.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="plate_material">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5e_vision_config/meshes/ur5eAdapter.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <!-- Attach mounting plate to world at z=0 -->
+  <joint name="world_to_mounting_plate" type="fixed">
+    <parent link="world"/>
+    <child link="base_mounting_plate"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <!-- Instantiate UR5e on top of mounting plate at +63mm -->
+  <xacro:ur_robot
+    name="ur5e"
+    tf_prefix=""
+    parent="base_mounting_plate"
+    joint_limits_parameters_file="$(find ur_description)/config/ur5e/joint_limits.yaml"
+    kinematics_parameters_file="$(find ur_description)/config/ur5e/default_kinematics.yaml"
+    physical_parameters_file="$(find ur_description)/config/ur5e/physical_parameters.yaml"
+    visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml"
+    transmission_hw_interface="hardware_interface/PositionJointInterface"
+    safety_limits="false"
+    safety_pos_margin="0.15"
+    safety_k_position="20"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)"
+    robot_ip="$(arg robot_ip)"
+    script_filename="$(find ur5e_vision_config)/resources/ros_control.urscript"
+    output_recipe_filename="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"
+    input_recipe_filename="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"
+    use_tool_communication="$(arg use_tool_communication)"
+    tool_voltage="$(arg tool_voltage)"
+    tool_parity="$(arg tool_parity)"
+    tool_baud_rate="$(arg tool_baud_rate)"
+    tool_stop_bits="$(arg tool_stop_bits)"
+    tool_rx_idle_chars="$(arg tool_rx_idle_chars)"
+    tool_tx_idle_chars="$(arg tool_tx_idle_chars)"
+    tool_device_name="$(arg tool_device_name)"
+    tool_tcp_port="$(arg tool_tcp_port)"
+    >
+    <origin xyz="0 0 0.063" rpy="0 0 0" />
+  </xacro:ur_robot>
+
+  <!-- UR-to-Robotiq coupling adapter attached to tool0 -->
+  <xacro:ur_to_robotiq prefix="" parent="tool0" child="gripper_mount_link"/>
+
+  <!-- Robotiq 2F-85 gripper attached to the adapter -->
+  <xacro:robotiq_gripper
+    name="RobotiqGripperHardwareInterface"
+    prefix=""
+    parent="gripper_mount_link"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    mock_sensor_commands="$(arg mock_sensor_commands)"
+    include_ros2_control="$(arg include_gripper_ros2_control)"
+    com_port="$(arg com_port)"
+    >
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_gripper>
+
+  <!-- TCP frame at the gripper fingertips (for MoveIt interactive marker) -->
+  <link name="gripper_tcp"/>
+  <joint name="gripper_tcp_joint" type="fixed">
+    <parent link="robotiq_85_base_link"/>
+    <child link="gripper_tcp"/>
+    <origin xyz="0 0 0.175" rpy="0 0 0"/>
+  </joint>
+
+</robot>

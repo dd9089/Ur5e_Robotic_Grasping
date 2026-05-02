@@ -1,0 +1,7 @@
+move_group:
+  ros__parameters:
+    # Velocity and acceleration scaling factors
+    # These scale down the max velocity/acceleration from joint_limits.yaml
+    # Range: 0.0 to 1.0 (default: 1.0)
+    default_velocity_scaling_factor: 0.1  # 10% of max velocity
+    default_acceleration_scaling_factor: 0.1  # 10% of max acceleration

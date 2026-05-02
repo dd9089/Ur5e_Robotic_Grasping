@@ -1,0 +1,21 @@
+# Planning scene configuration for UR5e with adapter
+# This file defines permanent collision objects in the workspace
+
+collision_objects:
+  - id: "robot_adapter"
+    header:
+      frame_id: "base_link"
+    pose:
+      position:
+        x: 0.0
+        y: 0.0
+        z: -0.02  # 2cm below base_link
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    primitives:
+      - type: 1  # BOX
+        dimensions: [0.3, 0.3, 0.014]  # 30cm x 30cm x 1.4cm
+    operation: 0  # ADD

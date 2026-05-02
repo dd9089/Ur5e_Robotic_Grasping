@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="robotiq_gripper">
+  <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_85_macro.urdf.xacro"/>
+
+  <xacro:arg name="use_fake_hardware" default="false"/>
+  <xacro:arg name="mock_sensor_commands" default="false"/>
+  <xacro:arg name="com_port" default="/tmp/ttyUR"/>
+
+  <link name="world"/>
+
+  <xacro:robotiq_gripper
+    name="RobotiqGripperHardwareInterface"
+    prefix=""
+    parent="world"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    mock_sensor_commands="$(arg mock_sensor_commands)"
+    include_ros2_control="true"
+    com_port="$(arg com_port)"
+    >
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_gripper>
+</robot>
